@@ -2,6 +2,8 @@ package com.innowise.userservice.exception;
 
 import com.innowise.userservice.model.dto.ApiErrorResponse;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -12,6 +14,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+  private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
   @ExceptionHandler(EntityNotFoundException.class)
   public ResponseEntity<ApiErrorResponse> handleNotFound(EntityNotFoundException exception) {
     return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -20,7 +24,7 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(BusinessValidationException.class)
   public ResponseEntity<ApiErrorResponse> handleBusinessValidation(BusinessValidationException exception) {
-    return ResponseEntity.status(HttpStatus.CONFLICT)
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
         .body(new ApiErrorResponse(exception.getMessage()));
   }
 
@@ -32,12 +36,18 @@ public class GlobalExceptionHandler {
         .map(GlobalExceptionHandler::formatFieldError)
         .collect(Collectors.joining("; "));
 
+    if (message.isBlank()) {
+      message = "Validation failed";
+    }
+
     return ResponseEntity.status(HttpStatus.BAD_REQUEST)
         .body(new ApiErrorResponse(message));
   }
 
   @ExceptionHandler(Exception.class)
   public ResponseEntity<ApiErrorResponse> handleAny(Exception exception) {
+    log.error("Unexpected error", exception);
+
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
         .body(new ApiErrorResponse("Unexpected error"));
   }

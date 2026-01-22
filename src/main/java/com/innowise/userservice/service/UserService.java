@@ -11,5 +11,6 @@ public interface UserService {
   Page<User> getAll(String name, String surname, Pageable pageable);
   User updateById(Long id, User updated);
   void setActive(Long id, boolean active);
+  User save(User user);
 
 }

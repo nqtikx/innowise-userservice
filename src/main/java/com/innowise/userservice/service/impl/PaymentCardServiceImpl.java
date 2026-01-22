@@ -1,11 +1,12 @@
 package com.innowise.userservice.service.impl;
 
+import com.innowise.userservice.exception.BusinessValidationException;
+import com.innowise.userservice.exception.EntityNotFoundException;
 import com.innowise.userservice.model.PaymentCard;
 import com.innowise.userservice.model.User;
 import com.innowise.userservice.repository.PaymentCardRepository;
 import com.innowise.userservice.repository.UserRepository;
 import com.innowise.userservice.service.PaymentCardService;
-import java.util.NoSuchElementException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,13 +30,13 @@ public class PaymentCardServiceImpl implements PaymentCardService {
   @Override
   @Transactional
   public PaymentCard createForUser(Long userId, PaymentCard paymentCard)
-      throws IllegalArgumentException, IllegalAccessException {
+      throws IllegalAccessException {
     User user = userRepository.findById(userId)
-        .orElseThrow(() -> new NoSuchElementException("user with id not found id=" + userId));
+        .orElseThrow(() -> new EntityNotFoundException("user not found id=" + userId));
 
     long cardsCount = paymentCardRepository.countByUserId(userId);
     if (cardsCount >= MAX_CARDS_PER_USER) {
-      throw new IllegalArgumentException("user cannot have more than 5 payment cards userId=" + userId);
+      throw new BusinessValidationException("user cannot have more than 5 payment cards userId=" + userId);
     }
 
     user.addPaymentCard(paymentCard);
@@ -48,14 +49,14 @@ public class PaymentCardServiceImpl implements PaymentCardService {
   @Transactional(readOnly = true)
   public PaymentCard getById(Long id) {
     return paymentCardRepository.findById(id)
-        .orElseThrow(() -> new NoSuchElementException("payment card not found id=" + id));
+        .orElseThrow(() -> new EntityNotFoundException("payment card not found id=" + id));
   }
 
   @Override
   @Transactional(readOnly = true)
   public PaymentCard getByIdAndUserId(Long id, Long userId) {
     return paymentCardRepository.findByIdAndUserId(id, userId)
-        .orElseThrow(() -> new NoSuchElementException("payment card not found id=" + id + ", userId=" + userId));
+        .orElseThrow(() -> new EntityNotFoundException("payment card not found id=" + id + ", userId=" + userId));
   }
 
   @Override
@@ -86,9 +87,9 @@ public class PaymentCardServiceImpl implements PaymentCardService {
   @Override
   @Transactional
   public void setActive(Long id, boolean active) {
-    int updated = paymentCardRepository.updateActiveById(id, active);
-    if (updated == 0) {
-      throw new NoSuchElementException("payment card not found id=" + id);
+    int updatedRows = paymentCardRepository.updateActiveById(id, active);
+    if (updatedRows == 0) {
+      throw new EntityNotFoundException("payment card not found id=" + id);
     }
   }
 }

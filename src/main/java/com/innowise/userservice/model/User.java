@@ -83,6 +83,26 @@ public class User extends AuditEntity {
     return List.copyOf(paymentCards);
   }
 
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public void setSurname(String surname) {
+    this.surname = surname;
+  }
+
+  public void setBirthDate(LocalDate birthDate) {
+    this.birthDate = birthDate;
+  }
+
+  public void setEmail(String email) {
+    this.email = email;
+  }
+
+  public void setActive(boolean active) {
+    this.active = active;
+  }
+
   public void addPaymentCard(PaymentCard card) throws IllegalAccessException {
     if (card == null) {
       throw new IllegalAccessException("Card must not be null");

@@ -13,7 +13,6 @@ import org.springframework.data.repository.query.Param;
 public interface PaymentCardRepository extends JpaRepository<PaymentCard, Long> {
 
   Page<PaymentCard> findAllByUserId(Long userId, Pageable pageable);
-
   Optional<PaymentCard> findByIdAndUserId(Long id, Long userId);
   long countByUserId(Long userId);
 

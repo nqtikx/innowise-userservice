@@ -72,4 +72,20 @@ public class PaymentCard extends AuditEntity {
   public boolean isActive() {
     return active;
   }
+
+  public void setNumber(String number) {
+    this.number = number;
+  }
+
+  public void setHolder(String holder) {
+    this.holder = holder;
+  }
+
+  public void setExpirationDate(LocalDate expirationDate) {
+    this.expirationDate = expirationDate;
+  }
+
+  public void setActive(boolean active) {
+    this.active = active;
+  }
 }

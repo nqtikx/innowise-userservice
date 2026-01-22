@@ -2,7 +2,7 @@ package com.innowise.userservice.service.impl;
 
 import com.innowise.userservice.exception.BusinessValidationException;
 import com.innowise.userservice.exception.EntityNotFoundException;
-import com.innowise.userservice.model.User;
+import com.innowise.userservice.model.entity.User;
 import com.innowise.userservice.repository.UserRepository;
 import com.innowise.userservice.service.UserService;
 import com.innowise.userservice.specification.UserSpecification;

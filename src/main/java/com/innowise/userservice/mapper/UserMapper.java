@@ -1,6 +1,6 @@
 package com.innowise.userservice.mapper;
 
-import com.innowise.userservice.model.User;
+import com.innowise.userservice.model.entity.User;
 import com.innowise.userservice.model.dto.UserCreateDto;
 import com.innowise.userservice.model.dto.UserResponseDto;
 import com.innowise.userservice.model.dto.UserUpdateDto;

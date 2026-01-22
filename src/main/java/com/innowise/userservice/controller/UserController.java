@@ -1,7 +1,7 @@
 package com.innowise.userservice.controller;
 
 import com.innowise.userservice.mapper.UserMapper;
-import com.innowise.userservice.model.User;
+import com.innowise.userservice.model.entity.User;
 import com.innowise.userservice.model.dto.UserCreateDto;
 import com.innowise.userservice.model.dto.UserResponseDto;
 import com.innowise.userservice.model.dto.UserUpdateDto;
@@ -12,7 +12,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/users")
@@ -27,7 +35,7 @@ public class UserController {
     this.userMapper = userMapper;
   }
 
-  @PostMapping
+  @PostMapping("")
   public ResponseEntity<UserResponseDto> create(@Valid @RequestBody UserCreateDto dto) {
     User user = userMapper.toEntity(dto);
     User created = userService.create(user);
@@ -40,7 +48,7 @@ public class UserController {
     return ResponseEntity.ok(userMapper.toResponseDto(user));
   }
 
-  @GetMapping
+  @GetMapping("")
   public ResponseEntity<Page<UserResponseDto>> getAll(
       @RequestParam(required = false) String name,
       @RequestParam(required = false) String surname,

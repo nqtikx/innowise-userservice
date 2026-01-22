@@ -1,6 +1,6 @@
 package com.innowise.userservice.repository;
 
-import com.innowise.userservice.model.PaymentCard;
+import com.innowise.userservice.model.entity.PaymentCard;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;

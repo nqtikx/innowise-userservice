@@ -1,6 +1,6 @@
 package com.innowise.userservice.service;
 
-import com.innowise.userservice.model.User;
+import com.innowise.userservice.model.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

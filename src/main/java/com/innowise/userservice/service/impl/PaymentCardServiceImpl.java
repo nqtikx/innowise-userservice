@@ -2,8 +2,8 @@ package com.innowise.userservice.service.impl;
 
 import com.innowise.userservice.exception.BusinessValidationException;
 import com.innowise.userservice.exception.EntityNotFoundException;
-import com.innowise.userservice.model.PaymentCard;
-import com.innowise.userservice.model.User;
+import com.innowise.userservice.model.entity.PaymentCard;
+import com.innowise.userservice.model.entity.User;
 import com.innowise.userservice.repository.PaymentCardRepository;
 import com.innowise.userservice.repository.UserRepository;
 import com.innowise.userservice.service.PaymentCardService;
@@ -29,8 +29,7 @@ public class PaymentCardServiceImpl implements PaymentCardService {
 
   @Override
   @Transactional
-  public PaymentCard createForUser(Long userId, PaymentCard paymentCard)
-      throws IllegalAccessException {
+  public PaymentCard createForUser(Long userId, PaymentCard paymentCard) {
     User user = userRepository.findById(userId)
         .orElseThrow(() -> new EntityNotFoundException("user not found id=" + userId));
 
@@ -92,4 +91,22 @@ public class PaymentCardServiceImpl implements PaymentCardService {
       throw new EntityNotFoundException("payment card not found id=" + id);
     }
   }
+
+  @Override
+  @Transactional
+  public void setActive(Long id, Long userId, boolean active) {
+    PaymentCard existing = getByIdAndUserId(id, userId);
+    existing.setActive(active);
+    paymentCardRepository.save(existing);
+  }
+
+  @Override
+  @Transactional
+  public PaymentCard save(PaymentCard paymentCard) {
+    if (paymentCard == null) {
+      throw new BusinessValidationException("payment card must not be null");
+    }
+    return paymentCardRepository.save(paymentCard);
+  }
+
 }

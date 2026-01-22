@@ -43,7 +43,7 @@ public class GlobalExceptionHandler {
     return ResponseEntity.status(HttpStatus.BAD_REQUEST)
         .body(new ApiErrorResponse(message));
   }
-
+  
   @ExceptionHandler(Exception.class)
   public ResponseEntity<ApiErrorResponse> handleAny(Exception exception) {
     log.error("Unexpected error", exception);
@@ -57,4 +57,5 @@ public class GlobalExceptionHandler {
     String defaultMessage = error.getDefaultMessage();
     return field + ": " + defaultMessage;
   }
+
 }

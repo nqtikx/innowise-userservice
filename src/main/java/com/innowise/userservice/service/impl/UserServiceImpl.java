@@ -1,10 +1,11 @@
 package com.innowise.userservice.service.impl;
 
-import com.innowise.userservice.model.User;
+import com.innowise.userservice.exception.BusinessValidationException;
+import com.innowise.userservice.exception.EntityNotFoundException;
+import com.innowise.userservice.model.entity.User;
 import com.innowise.userservice.repository.UserRepository;
 import com.innowise.userservice.service.UserService;
 import com.innowise.userservice.specification.UserSpecification;
-import java.util.NoSuchElementException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,8 +27,13 @@ public class UserServiceImpl implements UserService {
   @Transactional
   public User create(User user) {
     if (user == null) {
-      throw new IllegalArgumentException("user must not be null");
+      throw new BusinessValidationException("user must not be null");
     }
+
+    if (userRepository.existsByEmail(user.getEmail())) {
+      throw new BusinessValidationException("user with this email already exists email=" + user.getEmail());
+    }
+
     return userRepository.save(user);
   }
 
@@ -35,16 +41,16 @@ public class UserServiceImpl implements UserService {
   @Transactional(readOnly = true)
   public User getById(Long id) {
     return userRepository.findById(id)
-        .orElseThrow(() -> new NoSuchElementException("user with id not found id=" + id));
+        .orElseThrow(() -> new EntityNotFoundException("user not found id=" + id));
   }
 
   @Override
   @Transactional(readOnly = true)
   public Page<User> getAll(String name, String surname, Pageable pageable) {
-    Specification<User> spec = Specification.where(UserSpecification.nameContainsIgnoreCase(name))
+    Specification<User> specification = Specification.where(UserSpecification.nameContainsIgnoreCase(name))
         .and(UserSpecification.surnameContainsIgnoreCase(surname));
 
-    return userRepository.findAll(spec, pageable);
+    return userRepository.findAll(specification, pageable);
   }
 
   @Override
@@ -64,9 +70,18 @@ public class UserServiceImpl implements UserService {
   @Override
   @Transactional
   public void setActive(Long id, boolean active) {
-    int updated = userRepository.updateActiveById(id, active);
-    if (updated == 0) {
-      throw new NoSuchElementException("user with id not found id=" + id);
+    int updatedRows = userRepository.updateActiveById(id, active);
+    if (updatedRows == 0) {
+      throw new EntityNotFoundException("user not found id=" + id);
     }
+  }
+
+  @Override
+  @Transactional
+  public User save(User user) {
+    if (user == null) {
+      throw new BusinessValidationException("user must not be null");
+    }
+    return userRepository.save(user);
   }
 }

@@ -1,5 +1,6 @@
-package com.innowise.userservice.model;
+package com.innowise.userservice.model.entity;
 
+import com.innowise.userservice.exception.BusinessValidationException;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -103,9 +104,9 @@ public class User extends AuditEntity {
     this.active = active;
   }
 
-  public void addPaymentCard(PaymentCard card) throws IllegalAccessException {
+  public void addPaymentCard(PaymentCard card) {
     if (card == null) {
-      throw new IllegalAccessException("Card must not be null");
+      throw new BusinessValidationException("payment card must not be null");
     }
     if (paymentCards.contains(card)) {
       return;

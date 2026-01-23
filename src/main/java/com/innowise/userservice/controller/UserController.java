@@ -1,6 +1,8 @@
 package com.innowise.userservice.controller;
 
+import com.innowise.userservice.mapper.PaymentCardMapper;
 import com.innowise.userservice.mapper.UserMapper;
+import com.innowise.userservice.model.dto.UserWithCardsResponseDto;
 import com.innowise.userservice.model.entity.User;
 import com.innowise.userservice.model.dto.UserCreateDto;
 import com.innowise.userservice.model.dto.UserResponseDto;
@@ -12,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -48,18 +51,6 @@ public class UserController {
     return ResponseEntity.ok(userMapper.toResponseDto(user));
   }
 
-  @GetMapping("")
-  public ResponseEntity<Page<UserResponseDto>> getAll(
-      @RequestParam(required = false) String name,
-      @RequestParam(required = false) String surname,
-      Pageable pageable
-  ) {
-    Page<UserResponseDto> result = userService.getAll(name, surname, pageable)
-        .map(userMapper::toResponseDto);
-
-    return ResponseEntity.ok(result);
-  }
-
   @PutMapping("/{id}")
   public ResponseEntity<UserResponseDto> updateById(
       @PathVariable Long id,
@@ -78,6 +69,17 @@ public class UserController {
       @RequestParam("active") boolean active
   ) {
     userService.setActive(id, active);
+    return ResponseEntity.noContent().build();
+  }
+
+  @GetMapping("/{id}/with-cards")
+  public ResponseEntity<UserWithCardsResponseDto> getByIdWithCards(@PathVariable Long id) {
+    return ResponseEntity.ok(userService.getByIdWithCards(id));
+  }
+
+  @DeleteMapping("/{id}")
+  public ResponseEntity<Void> delete(@PathVariable Long id) {
+    userService.deleteById(id);
     return ResponseEntity.noContent().build();
   }
 }

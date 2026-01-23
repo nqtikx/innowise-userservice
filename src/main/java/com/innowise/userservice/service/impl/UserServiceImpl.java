@@ -2,11 +2,16 @@ package com.innowise.userservice.service.impl;
 
 import com.innowise.userservice.exception.BusinessValidationException;
 import com.innowise.userservice.exception.EntityNotFoundException;
+import com.innowise.userservice.mapper.PaymentCardMapper;
+import com.innowise.userservice.mapper.UserMapper;
+import com.innowise.userservice.model.dto.UserWithCardsResponseDto;
 import com.innowise.userservice.model.entity.User;
 import com.innowise.userservice.repository.UserRepository;
 import com.innowise.userservice.service.UserService;
 import com.innowise.userservice.specification.UserSpecification;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -14,17 +19,22 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional
 public class UserServiceImpl implements UserService {
 
   private final UserRepository userRepository;
+  private final UserMapper userMapper;
+  private final PaymentCardMapper paymentCardMapper;
 
   @Autowired
-  public UserServiceImpl(UserRepository userRepository) {
+  public UserServiceImpl(UserRepository userRepository, UserMapper userMapper,
+      PaymentCardMapper paymentCardMapper) {
     this.userRepository = userRepository;
+    this.userMapper = userMapper;
+    this.paymentCardMapper = paymentCardMapper;
   }
 
   @Override
-  @Transactional
   public User create(User user) {
     if (user == null) {
       throw new BusinessValidationException("user must not be null");
@@ -45,16 +55,7 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  @Transactional(readOnly = true)
-  public Page<User> getAll(String name, String surname, Pageable pageable) {
-    Specification<User> specification = Specification.where(UserSpecification.nameContainsIgnoreCase(name))
-        .and(UserSpecification.surnameContainsIgnoreCase(surname));
-
-    return userRepository.findAll(specification, pageable);
-  }
-
-  @Override
-  @Transactional
+  @CacheEvict(cacheNames = "usersWithCards", key = "#id")
   public User updateById(Long id, User updated) {
     User existing = getById(id);
 
@@ -68,7 +69,7 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  @Transactional
+  @CacheEvict(cacheNames = "usersWithCards", key = "#id")
   public void setActive(Long id, boolean active) {
     int updatedRows = userRepository.updateActiveById(id, active);
     if (updatedRows == 0) {
@@ -77,7 +78,7 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  @Transactional
+  @CacheEvict(cacheNames = "usersWithCards", key = "#user.id")
   public User save(User user) {
     if (user == null) {
       throw new BusinessValidationException("user must not be null");
@@ -85,5 +86,31 @@ public class UserServiceImpl implements UserService {
     return userRepository.save(user);
   }
 
+  @Override
+  @Cacheable(cacheNames = "usersWithCards", key = "#id")
+  @Transactional(readOnly = true)
+  public UserWithCardsResponseDto getByIdWithCards(Long id) {
+    User user = userRepository.findWithPaymentCardsById(id)
+        .orElseThrow(() -> new EntityNotFoundException("user not found id=" + id));
 
+    UserWithCardsResponseDto dto = new UserWithCardsResponseDto();
+    dto.setUser(userMapper.toResponseDto(user));
+    dto.setCards(
+        user.getPaymentCards()
+            .stream()
+            .map(paymentCardMapper::toResponseDto)
+            .toList()
+    );
+
+    return dto;
+  }
+
+  @Override
+  @CacheEvict(cacheNames = "usersWithCards", key = "#id")
+  public void deleteById(Long id) {
+    if (!userRepository.existsById(id)) {
+      throw new EntityNotFoundException("user not found id=" + id);
+    }
+    userRepository.deleteById(id);
+  }
 }

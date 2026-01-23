@@ -23,5 +23,4 @@ public interface PaymentCardRepository extends JpaRepository<PaymentCard, Long> 
   @Query(value = "SELECT * FROM payment_cards WHERE user_id = :userId ORDER BY id", nativeQuery = true)
   List<PaymentCard> findAllByUserIdNative(@Param("userId") Long userId);
 
-
 }

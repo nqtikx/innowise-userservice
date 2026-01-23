@@ -54,7 +54,7 @@ public class PaymentCard extends AuditEntity {
     return user;
   }
 
-  void setUser(User user) {
+  public void setUser(User user) {
     this.user = user;
   }
 

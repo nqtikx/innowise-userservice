@@ -2,6 +2,7 @@ package com.innowise.userservice.repository;
 
 import com.innowise.userservice.model.entity.User;
 import java.util.Optional;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
@@ -16,5 +17,8 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
   @Modifying
   @Query("UPDATE User u SET u.active = :active WHERE u.id = :id")
   int updateActiveById(@Param("id") Long id, @Param("active") boolean active);
+
+  @EntityGraph(attributePaths = "paymentCards")
+  Optional<User> findWithPaymentCardsById(Long id);
 
 }

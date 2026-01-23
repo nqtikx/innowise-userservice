@@ -116,6 +116,9 @@ public class User extends AuditEntity {
   }
 
   public void removePaymentCard(PaymentCard card) {
+    if (card == null) {
+      throw new BusinessValidationException("payment card must not be null");
+    }
     paymentCards.remove(card);
     card.setUser(null);
   }

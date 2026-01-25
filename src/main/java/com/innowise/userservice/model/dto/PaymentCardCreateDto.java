@@ -3,13 +3,15 @@ package com.innowise.userservice.model.dto;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 
 public class PaymentCardCreateDto {
 
   @NotBlank
-  @Size(max = 18)
+  @Size(min = 16, max = 16)
+  @Pattern(regexp = "\\d{16}", message = "must contain exactly 16 digits")
   private String number;
 
   @NotBlank

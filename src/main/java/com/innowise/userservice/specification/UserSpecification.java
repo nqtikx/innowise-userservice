@@ -9,22 +9,20 @@ public final class UserSpecification {
   }
 
   public static Specification<User> nameContainsIgnoreCase(String name) {
-    if (name == null || name.isBlank()) {
-      return Specification.where(null);
-    }
-
-    String patternLike = "%" + name.trim().toLowerCase() + "%";
-    return (root, query, criteriaBuilder) ->
-        criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), patternLike);
+    return (root, query, cb) -> {
+      if (name == null || name.isBlank()) {
+        return cb.conjunction();
+      }
+      return cb.like(cb.lower(root.get("name")), "%" + name.toLowerCase() + "%");
+    };
   }
 
   public static Specification<User> surnameContainsIgnoreCase(String surname) {
-    if (surname == null || surname.isBlank()) {
-      return Specification.where(null);
-    }
-
-    String patternLike = "%" + surname.trim().toLowerCase() + "%";
-    return (root, query, criteriaBuilder) ->
-        criteriaBuilder.like(criteriaBuilder.lower(root.get("surname")), patternLike);
+    return (root, query, cb) -> {
+      if (surname == null || surname.isBlank()) {
+        return cb.conjunction();
+      }
+      return cb.like(cb.lower(root.get("surname")), "%" + surname.toLowerCase() + "%");
+    };
   }
 }

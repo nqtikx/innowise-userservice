@@ -1,6 +1,5 @@
 package com.innowise.userservice.controller;
 
-import com.innowise.userservice.mapper.PaymentCardMapper;
 import com.innowise.userservice.mapper.UserMapper;
 import com.innowise.userservice.model.dto.UserWithCardsResponseDto;
 import com.innowise.userservice.model.entity.User;
@@ -81,5 +80,17 @@ public class UserController {
   public ResponseEntity<Void> delete(@PathVariable Long id) {
     userService.deleteById(id);
     return ResponseEntity.noContent().build();
+  }
+
+  @GetMapping("")
+  public ResponseEntity<Page<UserResponseDto>> getAll(
+      @RequestParam(required = false) String name,
+      @RequestParam(required = false) String surname,
+      Pageable pageable
+  ) {
+    Page<UserResponseDto> result = userService.getAll(name, surname, pageable)
+        .map(userMapper::toResponseDto);
+
+    return ResponseEntity.ok(result);
   }
 }

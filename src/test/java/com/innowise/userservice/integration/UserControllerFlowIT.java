@@ -70,7 +70,7 @@ class UserControllerFlowIT extends AbstractIntegrationTest {
 
     restTemplate.getForEntity("/users/" + userId + "/with-cards", UserWithCardsResponseDto.class);
 
-    Assertions.assertTrue(Boolean.TRUE.equals(stringRedisTemplate.hasKey("usersWithCards::" + userId)));
+    Assertions.assertEquals(Boolean.TRUE, stringRedisTemplate.hasKey("usersWithCards::" + userId));
 
     UserUpdateDto updateDto = new UserUpdateDto();
     updateDto.setName("Max");
@@ -87,7 +87,7 @@ class UserControllerFlowIT extends AbstractIntegrationTest {
     );
 
     Assertions.assertEquals(HttpStatus.OK, updateResponse.getStatusCode());
-    Assertions.assertFalse(Boolean.TRUE.equals(stringRedisTemplate.hasKey("usersWithCards::" + userId)));
+    Assertions.assertEquals(Boolean.FALSE, stringRedisTemplate.hasKey("usersWithCards::" + userId));
   }
 
   @Test
@@ -96,7 +96,7 @@ class UserControllerFlowIT extends AbstractIntegrationTest {
     createCard(userId);
 
     restTemplate.getForEntity("/users/" + userId + "/with-cards", UserWithCardsResponseDto.class);
-    Assertions.assertTrue(Boolean.TRUE.equals(stringRedisTemplate.hasKey("usersWithCards::" + userId)));
+    Assertions.assertEquals(Boolean.TRUE, stringRedisTemplate.hasKey("usersWithCards::" + userId));
 
     ResponseEntity<Void> deleteResponse = restTemplate.exchange(
         "/users/" + userId,
@@ -106,7 +106,7 @@ class UserControllerFlowIT extends AbstractIntegrationTest {
     );
 
     Assertions.assertEquals(HttpStatus.NO_CONTENT, deleteResponse.getStatusCode());
-    Assertions.assertFalse(Boolean.TRUE.equals(stringRedisTemplate.hasKey("usersWithCards::" + userId)));
+    Assertions.assertEquals(Boolean.FALSE, stringRedisTemplate.hasKey("usersWithCards::" + userId));
 
     Assertions.assertEquals(0, userRepository.count());
     Assertions.assertEquals(0, paymentCardRepository.count());

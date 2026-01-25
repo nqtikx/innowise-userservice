@@ -1,6 +1,5 @@
 package com.innowise.userservice.model.entity;
 
-import com.innowise.userservice.model.entity.AuditEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;

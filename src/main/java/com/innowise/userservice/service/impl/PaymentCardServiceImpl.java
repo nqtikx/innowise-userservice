@@ -78,7 +78,8 @@ public class PaymentCardServiceImpl implements PaymentCardService {
 
   @Override
   public PaymentCard updateById(Long id, PaymentCard updated) {
-    PaymentCard existing = getById(id);
+    PaymentCard existing = paymentCardRepository.findById(id)
+        .orElseThrow(() -> new EntityNotFoundException("payment card not found id=" + id));
     Long userId = existing.getUser().getId();
 
     existing.setNumber(updated.getNumber());
@@ -93,7 +94,8 @@ public class PaymentCardServiceImpl implements PaymentCardService {
 
   @Override
   public void setActive(Long id, boolean active) {
-    PaymentCard existing = getById(id);
+    PaymentCard existing = paymentCardRepository.findById(id)
+        .orElseThrow(() -> new EntityNotFoundException("payment card not found id=" + id));
     Long userId = existing.getUser().getId();
 
     existing.setActive(active);
@@ -103,7 +105,8 @@ public class PaymentCardServiceImpl implements PaymentCardService {
 
   @Override
   public void setActive(Long id, Long userId, boolean active) {
-    PaymentCard existing = getByIdAndUserId(id, userId);
+    PaymentCard existing = paymentCardRepository.findByIdAndUserId(id, userId)
+        .orElseThrow(() -> new EntityNotFoundException("payment card not found id=" + id + ", userId=" + userId));
     existing.setActive(active);
     paymentCardRepository.save(existing);
     usersWithCardsCacheService.evict(userId);

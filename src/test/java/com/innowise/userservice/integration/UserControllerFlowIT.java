@@ -170,4 +170,51 @@ class UserControllerFlowIT extends AbstractIntegrationTest {
     cardCreateDto.setActive(true);
     return cardCreateDto;
   }
+
+  @Test
+  void shouldFilterUsersByNameAndSurname() {
+    createUser("filter1@mail.com");
+    createUserWithName("Alex", "Test", "filter2@mail.com");
+    createUserWithName("Max", "Another", "filter3@mail.com");
+
+    ResponseEntity<String> responseName = restTemplate.getForEntity(
+        "/users?name=max&page=0&size=10", String.class
+    );
+    Assertions.assertTrue(responseName.getBody().contains("filter1@mail.com"));
+    Assertions.assertTrue(responseName.getBody().contains("filter3@mail.com"));
+    Assertions.assertFalse(responseName.getBody().contains("filter2@mail.com"));
+
+    ResponseEntity<String> responseSurname = restTemplate.getForEntity(
+        "/users?surname=test&page=0&size=10", String.class
+    );
+    Assertions.assertTrue(responseSurname.getBody().contains("filter2@mail.com"));
+    Assertions.assertFalse(responseSurname.getBody().contains("filter1@mail.com"));
+  }
+
+  @Test
+  void shouldReturnBadRequestOnInvalidUserDto() {
+    UserCreateDto invalidDto = new UserCreateDto();
+    invalidDto.setEmail("not-email");
+
+    ResponseEntity<ApiErrorResponse> response = restTemplate.postForEntity(
+        "/users", invalidDto, ApiErrorResponse.class
+    );
+
+    Assertions.assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    Assertions.assertNotNull(response.getBody());
+
+    String msg = response.getBody().getMessage();
+    Assertions.assertTrue(msg.contains("name") || msg.contains("email"));
+  }
+
+  private void createUserWithName(String name, String surname, String email) {
+    UserCreateDto dto = new UserCreateDto();
+    dto.setName(name);
+    dto.setSurname(surname);
+    dto.setBirthDate(LocalDate.of(1990, 1, 1));
+    dto.setEmail(email);
+    dto.setActive(true);
+    restTemplate.postForEntity("/users", dto, Void.class);
+  }
+
 }

@@ -57,7 +57,8 @@ public class UserServiceImpl implements UserService {
   @Override
   @CacheEvict(cacheNames = "usersWithCards", key = "#id")
   public User updateById(Long id, User updated) {
-    User existing = getById(id);
+    User existing = userRepository.findById(id)
+        .orElseThrow(() -> new EntityNotFoundException("user not found id=" + id));
 
     existing.setName(updated.getName());
     existing.setSurname(updated.getSurname());

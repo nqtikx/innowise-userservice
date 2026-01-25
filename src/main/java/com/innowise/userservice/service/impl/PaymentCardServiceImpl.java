@@ -9,7 +9,6 @@ import com.innowise.userservice.repository.UserRepository;
 import com.innowise.userservice.service.PaymentCardService;
 import com.innowise.userservice.service.UsersWithCardsCacheService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -19,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class PaymentCardServiceImpl implements PaymentCardService {
 
+  private static final String CARD_NOT_FOUND_MSG = "payment card not found id=";
   private static final int MAX_CARDS_PER_USER = 5;
 
   private final UsersWithCardsCacheService usersWithCardsCacheService;
@@ -54,14 +54,14 @@ public class PaymentCardServiceImpl implements PaymentCardService {
   @Transactional(readOnly = true)
   public PaymentCard getById(Long id) {
     return paymentCardRepository.findById(id)
-        .orElseThrow(() -> new EntityNotFoundException("payment card not found id=" + id));
+        .orElseThrow(() -> new EntityNotFoundException(CARD_NOT_FOUND_MSG + id));
   }
 
   @Override
   @Transactional(readOnly = true)
   public PaymentCard getByIdAndUserId(Long id, Long userId) {
     return paymentCardRepository.findByIdAndUserId(id, userId)
-        .orElseThrow(() -> new EntityNotFoundException("payment card not found id=" + id + ", userId=" + userId));
+        .orElseThrow(() -> new EntityNotFoundException(CARD_NOT_FOUND_MSG + id + ", userId=" + userId));
   }
 
   @Override
@@ -79,7 +79,7 @@ public class PaymentCardServiceImpl implements PaymentCardService {
   @Override
   public PaymentCard updateById(Long id, PaymentCard updated) {
     PaymentCard existing = paymentCardRepository.findById(id)
-        .orElseThrow(() -> new EntityNotFoundException("payment card not found id=" + id));
+        .orElseThrow(() -> new EntityNotFoundException(CARD_NOT_FOUND_MSG + id));
     Long userId = existing.getUser().getId();
 
     existing.setNumber(updated.getNumber());
@@ -95,7 +95,7 @@ public class PaymentCardServiceImpl implements PaymentCardService {
   @Override
   public void setActive(Long id, boolean active) {
     PaymentCard existing = paymentCardRepository.findById(id)
-        .orElseThrow(() -> new EntityNotFoundException("payment card not found id=" + id));
+        .orElseThrow(() -> new EntityNotFoundException(CARD_NOT_FOUND_MSG + id));
     Long userId = existing.getUser().getId();
 
     existing.setActive(active);
@@ -106,7 +106,7 @@ public class PaymentCardServiceImpl implements PaymentCardService {
   @Override
   public void setActive(Long id, Long userId, boolean active) {
     PaymentCard existing = paymentCardRepository.findByIdAndUserId(id, userId)
-        .orElseThrow(() -> new EntityNotFoundException("payment card not found id=" + id + ", userId=" + userId));
+        .orElseThrow(() -> new EntityNotFoundException(CARD_NOT_FOUND_MSG + id + ", userId=" + userId));
     existing.setActive(active);
     paymentCardRepository.save(existing);
     usersWithCardsCacheService.evict(userId);

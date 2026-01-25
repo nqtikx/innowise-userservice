@@ -22,6 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class UserServiceImpl implements UserService {
 
+  private static final String USER_NOT_FOUND_MSG = "user not found id=";
+
   private final UserRepository userRepository;
   private final UserMapper userMapper;
   private final PaymentCardMapper paymentCardMapper;
@@ -51,14 +53,14 @@ public class UserServiceImpl implements UserService {
   @Transactional(readOnly = true)
   public User getById(Long id) {
     return userRepository.findById(id)
-        .orElseThrow(() -> new EntityNotFoundException("user not found id=" + id));
+        .orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND_MSG + id));
   }
 
   @Override
   @CacheEvict(cacheNames = "usersWithCards", key = "#id")
   public User updateById(Long id, User updated) {
     User existing = userRepository.findById(id)
-        .orElseThrow(() -> new EntityNotFoundException("user not found id=" + id));
+        .orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND_MSG + id));
 
     existing.setName(updated.getName());
     existing.setSurname(updated.getSurname());
@@ -74,7 +76,7 @@ public class UserServiceImpl implements UserService {
   public void setActive(Long id, boolean active) {
     int updatedRows = userRepository.updateActiveById(id, active);
     if (updatedRows == 0) {
-      throw new EntityNotFoundException("user not found id=" + id);
+      throw new EntityNotFoundException(USER_NOT_FOUND_MSG + id);
     }
   }
 
@@ -92,7 +94,7 @@ public class UserServiceImpl implements UserService {
   @Transactional(readOnly = true)
   public UserWithCardsResponseDto getByIdWithCards(Long id) {
     User user = userRepository.findWithPaymentCardsById(id)
-        .orElseThrow(() -> new EntityNotFoundException("user not found id=" + id));
+        .orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND_MSG + id));
 
     UserWithCardsResponseDto dto = new UserWithCardsResponseDto();
     dto.setUser(userMapper.toResponseDto(user));
@@ -110,7 +112,7 @@ public class UserServiceImpl implements UserService {
   @CacheEvict(cacheNames = "usersWithCards", key = "#id")
   public void deleteById(Long id) {
     if (!userRepository.existsById(id)) {
-      throw new EntityNotFoundException("user not found id=" + id);
+      throw new EntityNotFoundException(USER_NOT_FOUND_MSG + id);
     }
     userRepository.deleteById(id);
   }

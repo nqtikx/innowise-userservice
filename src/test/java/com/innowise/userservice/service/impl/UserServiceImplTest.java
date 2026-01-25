@@ -94,8 +94,9 @@ class UserServiceImplTest {
   @Test
   void updateByIdShouldThrowWhenUserNotFound() {
     when(userRepository.findById(1L)).thenReturn(Optional.empty());
-    Assertions.assertThrows(EntityNotFoundException.class, () -> userService.updateById(1L, new User("A", "B",
-        LocalDate.of(2000, 1, 1), "a@b.com", true)));
+    User userToUpdate = new User("A", "B", LocalDate.of(2000, 1, 1), "a@b.com", true);
+    Assertions.assertThrows(EntityNotFoundException.class,
+        () -> userService.updateById(1L, userToUpdate));
   }
 
   @Test

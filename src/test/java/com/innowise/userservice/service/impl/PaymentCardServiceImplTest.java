@@ -45,8 +45,9 @@ class PaymentCardServiceImplTest {
   @Test
   void createForUserShouldThrowWhenUserNotFound() {
     when(userRepository.findById(1L)).thenReturn(Optional.empty());
+    PaymentCard card = new PaymentCard("1", "H", LocalDate.of(2030, 12, 31), true);
     Assertions.assertThrows(EntityNotFoundException.class,
-        () -> paymentCardService.createForUser(1L, new PaymentCard("1", "H", LocalDate.of(2030, 12, 31), true)));
+        () -> paymentCardService.createForUser(1L, card));
   }
 
   @Test
@@ -55,8 +56,10 @@ class PaymentCardServiceImplTest {
     when(userRepository.findById(1L)).thenReturn(Optional.of(user));
     when(paymentCardRepository.countByUserId(1L)).thenReturn(5L);
 
+    PaymentCard card = new PaymentCard("1", "H", LocalDate.of(2030, 12, 31), true);
+
     Assertions.assertThrows(BusinessValidationException.class,
-        () -> paymentCardService.createForUser(1L, new PaymentCard("1", "H", LocalDate.of(2030, 12, 31), true)));
+        () -> paymentCardService.createForUser(1L, card));
 
     verify(paymentCardRepository, never()).saveAndFlush(any(PaymentCard.class));
     verify(usersWithCardsCacheService, never()).evict(any(Long.class));

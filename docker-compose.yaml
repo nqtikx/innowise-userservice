@@ -1,0 +1,44 @@
+services:
+  app:
+    build: .
+    container_name: userservice-app
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - userservice-network
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: userservice-db
+    ports:
+      - "5342:5432"
+    environment:
+      - POSTGRES_DB=userservicedb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=Nikitikk1315
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - userservice-network
+
+  redis:
+    image: redis:alpine
+    container_name: userservice-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - userservice-network
+
+networks:
+  userservice-network:
+    driver: bridge

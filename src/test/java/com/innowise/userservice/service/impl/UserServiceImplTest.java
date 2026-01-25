@@ -11,6 +11,7 @@ import com.innowise.userservice.model.entity.PaymentCard;
 import com.innowise.userservice.model.entity.User;
 import com.innowise.userservice.repository.UserRepository;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -18,7 +19,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -190,6 +196,21 @@ class UserServiceImplTest {
     userService.deleteById(1L);
 
     verify(userRepository, times(1)).deleteById(1L);
+  }
+
+  @Test
+  void getAllShouldCallRepositoryFindAllWithSpecificationAndPageable() {
+    Pageable pageable = Pageable.ofSize(10);
+    Page<User> expected = new PageImpl<>(List.of(), pageable, 0);
+
+    when(userRepository.findAll(Mockito.<Specification<User>>any(), Mockito.eq(pageable)))
+        .thenReturn(expected);
+
+    Page<User> result = userService.getAll("Max", "Try", pageable);
+
+    Assertions.assertNotNull(result);
+    verify(userRepository, times(1))
+        .findAll(Mockito.<Specification<User>>any(), Mockito.eq(pageable));
   }
 }
 

@@ -20,7 +20,7 @@ services:
     ports:
       - "5342:5432"
     environment:
-      - POSTGRES_DB=userservicedb
+      - POSTGRES_DB=userservice
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=Nikitikk1315
     healthcheck:

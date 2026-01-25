@@ -113,4 +113,13 @@ public class UserServiceImpl implements UserService {
     }
     userRepository.deleteById(id);
   }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Page<User> getAll(String name, String surname, Pageable pageable) {
+    Specification<User> specification = Specification.where(UserSpecification.nameContainsIgnoreCase(name))
+        .and(UserSpecification.surnameContainsIgnoreCase(surname));
+
+    return userRepository.findAll(specification, pageable);
+  }
 }

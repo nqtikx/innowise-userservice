@@ -71,7 +71,7 @@ databaseChangeLog:
                 }
               }
               - column: {
-                name: holder, type: varchar(100), constraints: {
+                name: holder, type: varchar(16), constraints: {
                   nullable: false
                 }
               }

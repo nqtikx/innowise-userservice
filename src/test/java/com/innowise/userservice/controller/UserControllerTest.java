@@ -8,9 +8,13 @@ import com.innowise.userservice.model.dto.UserUpdateDto;
 import com.innowise.userservice.model.dto.UserWithCardsResponseDto;
 import com.innowise.userservice.model.entity.User;
 import com.innowise.userservice.service.UserService;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -134,5 +138,28 @@ class UserControllerTest {
         .andExpect(status().isNoContent());
 
     verify(userService).deleteById(1L);
+  }
+
+  @Test
+  void getAllShouldReturnPage() throws Exception {
+    User user = new User("Cat", "Dog", LocalDate.of(2002, 3, 1), "test@mail.com", true);
+    ReflectionTestUtils.setField(user, "id", 1L);
+
+    Page<User> page = new PageImpl<>(List.of(user));
+
+    UserResponseDto responseDto = new UserResponseDto();
+    responseDto.setId(1L);
+
+    when(userService.getAll(any(), any(), any(Pageable.class))).thenReturn(page);
+    when(userMapper.toResponseDto(any(User.class))).thenReturn(responseDto);
+
+    mockMvc.perform(get("/users")
+            .param("page", "0")
+            .param("size", "10")
+            .param("name", "Max")
+            .param("surname", "Try"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content[0].id").value(1L));
   }
 }

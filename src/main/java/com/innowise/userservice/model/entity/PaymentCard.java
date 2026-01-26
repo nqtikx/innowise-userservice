@@ -23,7 +23,7 @@ public class PaymentCard extends AuditEntity {
   @JoinColumn(name = "user_id", nullable = false)
   private User user;
 
-  @Column(name = "number", nullable = false, length = 18)
+  @Column(name = "number", nullable = false, length = 16)
   private String number;
 
   @Column(name = "holder", nullable = false, length = 100)

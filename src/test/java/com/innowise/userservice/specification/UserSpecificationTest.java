@@ -33,7 +33,6 @@ class UserSpecificationTest {
     Path<String> namePath = mock(Path.class);
 
     when(root.<String>get("name")).thenReturn(namePath);
-    // Упрощаем мок для теста: lower() возвращает тот же путь
     when(cb.lower(namePath)).thenReturn(namePath);
     when(cb.like(any(), anyString())).thenReturn(mock(Predicate.class));
 

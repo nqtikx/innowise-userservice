@@ -55,11 +55,10 @@ public class UserController {
       @PathVariable Long id,
       @Valid @RequestBody UserUpdateDto dto
   ) {
-    User existing = userService.getById(id);
-    userMapper.updateEntity(dto, existing);
-    User updated = userService.save(existing);
-
+    User updatedEntity = userMapper.toEntity(dto);
+    User updated = userService.updateById(id, updatedEntity);
     return ResponseEntity.ok(userMapper.toResponseDto(updated));
+
   }
 
   @PatchMapping("/{id}/active")

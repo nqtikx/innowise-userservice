@@ -31,7 +31,7 @@ public class User extends AuditEntity {
   @Column(name = "birth_date", nullable = false)
   private LocalDate birthDate;
 
-  @Column(name = "email", nullable = false, length = 100)
+  @Column(name = "email", nullable = false, length = 75)
   private String email;
 
   @Column(name = "active", nullable = false)

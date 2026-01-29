@@ -75,13 +75,11 @@ public class PaymentCardController {
       @PathVariable Long cardId,
       @Valid @RequestBody PaymentCardUpdateDto dto
   ) {
-    PaymentCard existing = paymentCardService.getByIdAndUserId(cardId, userId);
-    paymentCardMapper.updateEntity(dto, existing);
-
-    PaymentCard updated = paymentCardService.save(existing);
-
+    PaymentCard entity = paymentCardMapper.toEntity(dto);
+    PaymentCard updated = paymentCardService.updateById(cardId, userId, entity);
     return ResponseEntity.ok(paymentCardMapper.toResponseDto(updated));
   }
+
 
   @PatchMapping("/{cardId}/active")
   public ResponseEntity<Void> setActive(
@@ -95,7 +93,7 @@ public class PaymentCardController {
   }
 
   @GetMapping("/all")
-  public ResponseEntity<List<PaymentCardResponseDto>> getAllByUserId(@PathVariable Long userId) {
+  public ResponseEntity<List<PaymentCardResponseDto>> getAllByUserIdWithoutPagination(@PathVariable Long userId) {
     List<PaymentCardResponseDto> result = paymentCardService.getAllByUserId(userId)
         .stream()
         .map(paymentCardMapper::toResponseDto)

@@ -27,7 +27,7 @@ databaseChangeLog:
                 }
               }
               - column: {
-                name: email, type: varchar(100), constraints: {
+                name: email, type: varchar(75), constraints: {
                   nullable: false
                 }
               }

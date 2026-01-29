@@ -51,11 +51,8 @@ public class PaymentCardGlobalController {
       @PathVariable Long id,
       @Valid @RequestBody PaymentCardUpdateDto dto
   ) {
-    PaymentCard existing = paymentCardService.getById(id);
-    paymentCardMapper.updateEntity(dto, existing);
-
-    PaymentCard updated = paymentCardService.save(existing);
-
+    PaymentCard entity = paymentCardMapper.toEntity(dto);
+    PaymentCard updated = paymentCardService.updateById(id, entity);
     return ResponseEntity.ok(paymentCardMapper.toResponseDto(updated));
   }
 

@@ -15,6 +15,10 @@ public interface UserMapper {
   @Mapping(target = "paymentCards", ignore = true)
   User toEntity(UserCreateDto dto);
 
+  @Mapping(target = "id", ignore = true)
+  @Mapping(target = "paymentCards", ignore = true)
+  User toEntity(UserUpdateDto dto);
+
   UserResponseDto toResponseDto(User user);
 
   @Mapping(target = "id", ignore = true)

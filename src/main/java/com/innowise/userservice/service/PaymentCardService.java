@@ -17,6 +17,6 @@ public interface PaymentCardService {
   void setActive(Long id, boolean active);
   PaymentCard save(PaymentCard paymentCard);
   void setActive(Long id, Long userId, boolean active);
-
+  PaymentCard updateById(Long id, Long userId, PaymentCard updated);
 
 }

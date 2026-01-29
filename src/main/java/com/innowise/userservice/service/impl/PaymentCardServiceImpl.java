@@ -82,16 +82,31 @@ public class PaymentCardServiceImpl implements PaymentCardService {
     PaymentCard existing = paymentCardRepository.findById(id)
         .orElseThrow(() -> new EntityNotFoundException(CARD_NOT_FOUND_MSG + id));
     Long userId = existing.getUser().getId();
+    applyUpdates(existing, updated);
 
-    existing.setNumber(updated.getNumber());
-    existing.setHolder(updated.getHolder());
-    existing.setExpirationDate(updated.getExpirationDate());
-    existing.setActive(updated.isActive());
     PaymentCard saved = paymentCardRepository.save(existing);
     usersWithCardsCacheService.evict(userId);
     return saved;
-
   }
+
+  @Override
+  public PaymentCard updateById(Long id, Long userId, PaymentCard updated) {
+    PaymentCard existing = paymentCardRepository.findByIdAndUserId(id, userId)
+        .orElseThrow(() -> new EntityNotFoundException(CARD_NOT_FOUND_MSG + id + ", userId=" + userId));
+    applyUpdates(existing, updated);
+
+    PaymentCard saved = paymentCardRepository.save(existing);
+    usersWithCardsCacheService.evict(userId);
+    return saved;
+  }
+
+  private void applyUpdates(PaymentCard target, PaymentCard source) {
+    target.setNumber(source.getNumber());
+    target.setHolder(source.getHolder());
+    target.setExpirationDate(source.getExpirationDate());
+    target.setActive(source.isActive());
+  }
+
 
   @Override
   public void setActive(Long id, boolean active) {
@@ -101,22 +116,20 @@ public class PaymentCardServiceImpl implements PaymentCardService {
 
     int updatedRows = paymentCardRepository.updateActiveById(id, active);
     if (updatedRows == 0) {
-      throw new EntityNotFoundException(CARD_NOT_FOUND_MSG + id + ", userId=" + userId);
+      throw new EntityNotFoundException(CARD_NOT_FOUND_MSG + id);
     }
 
-    usersWithCardsCacheService.evict(existing.getUser().getId());
+    usersWithCardsCacheService.evict(userId);
   }
 
   @Override
   public void setActive(Long id, Long userId, boolean active) {
-    PaymentCard existing = paymentCardRepository.findByIdAndUserId(id, userId)
-        .orElseThrow(() -> new EntityNotFoundException(CARD_NOT_FOUND_MSG + id + ", userId=" + userId));
-    int updatedRows = paymentCardRepository.updateActiveById(id, active);
+    int updatedRows = paymentCardRepository.updateActiveByIdAndUserId(id, userId, active);
     if (updatedRows == 0) {
       throw new EntityNotFoundException(CARD_NOT_FOUND_MSG + id + ", userId=" + userId);
     }
 
-    usersWithCardsCacheService.evict(existing.getUser().getId());
+    usersWithCardsCacheService.evict(userId);
   }
 
   @Override
@@ -132,5 +145,4 @@ public class PaymentCardServiceImpl implements PaymentCardService {
   public List<PaymentCard> getAllByUserId(Long userId) {
     return paymentCardRepository.findAllByUserIdNative(userId);
   }
-
 }

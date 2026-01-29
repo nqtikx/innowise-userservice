@@ -7,6 +7,7 @@ import com.innowise.userservice.model.dto.PaymentCardResponseDto;
 import com.innowise.userservice.model.dto.PaymentCardUpdateDto;
 import com.innowise.userservice.service.PaymentCardService;
 import jakarta.validation.Valid;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -92,4 +93,15 @@ public class PaymentCardController {
 
     return ResponseEntity.noContent().build();
   }
+
+  @GetMapping("/all")
+  public ResponseEntity<List<PaymentCardResponseDto>> getAllByUserId(@PathVariable Long userId) {
+    List<PaymentCardResponseDto> result = paymentCardService.getAllByUserId(userId)
+        .stream()
+        .map(paymentCardMapper::toResponseDto)
+        .toList();
+
+    return ResponseEntity.ok(result);
+  }
+
 }

@@ -22,9 +22,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
-
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -109,7 +107,7 @@ class UserControllerTest {
     responseDto.setName("newCat");
 
     when(userMapper.toEntity(any(UserUpdateDto.class))).thenReturn(updatedEntity);
-    when(userService.updateById(eq(1L), eq(updatedEntity))).thenReturn(updatedEntity);
+    when(userService.updateById(1L, updatedEntity)).thenReturn(updatedEntity);
     when(userMapper.toResponseDto(updatedEntity)).thenReturn(responseDto);
 
     mockMvc.perform(put("/users/1")

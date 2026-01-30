@@ -8,7 +8,6 @@ import com.innowise.userservice.model.dto.PaymentCardResponseDto;
 import com.innowise.userservice.model.dto.PaymentCardUpdateDto;
 import com.innowise.userservice.service.PaymentCardService;
 import jakarta.validation.Valid;
-import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

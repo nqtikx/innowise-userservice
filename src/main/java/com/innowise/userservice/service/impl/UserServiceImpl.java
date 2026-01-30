@@ -12,7 +12,6 @@ import com.innowise.userservice.specification.UserSpecification;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -124,6 +123,7 @@ public class UserServiceImpl implements UserService {
     if (updatedRows == 0) {
       throw new EntityNotFoundException(USER_NOT_FOUND_MSG + id);
     }
-    return getById(id);
+    return userRepository.findById(id)
+        .orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND_MSG + id));
   }
 }

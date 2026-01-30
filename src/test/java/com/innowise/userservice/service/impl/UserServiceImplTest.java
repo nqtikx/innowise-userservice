@@ -25,7 +25,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.never;
@@ -183,7 +182,7 @@ class UserServiceImplTest {
     when(userMapper.toResponseDto(user)).thenReturn(userResponseDto);
 
     PaymentCardResponseDto cardResponseDto = new PaymentCardResponseDto();
-    when(paymentCardMapper.toResponseDto(eq(card))).thenReturn(cardResponseDto);
+    when(paymentCardMapper.toResponseDto(card)).thenReturn(cardResponseDto);
 
     UserWithCardsResponseDto dto = userService.getByIdWithCards(1L);
 

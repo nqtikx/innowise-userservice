@@ -130,6 +130,7 @@ public class PaymentCardServiceImpl implements PaymentCardService {
 
     PaymentCard card = paymentCardRepository.findById(id)
         .orElseThrow(() -> new EntityNotFoundException(CARD_NOT_FOUND_MSG + id));
+
     usersWithCardsCacheService.evict(card.getUser().getId());
     return card;
   }
@@ -141,6 +142,7 @@ public class PaymentCardServiceImpl implements PaymentCardService {
       throw new EntityNotFoundException(CARD_NOT_FOUND_MSG + id + ", userId=" + userId);
     }
     usersWithCardsCacheService.evict(userId);
-    return getByIdAndUserId(id, userId);
+    return paymentCardRepository.findByIdAndUserId(id, userId)
+        .orElseThrow(() -> new EntityNotFoundException(CARD_NOT_FOUND_MSG + id + ", userId=" + userId));
   }
 }

@@ -22,10 +22,10 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class PaymentCardServiceImplTest {
@@ -46,6 +46,7 @@ class PaymentCardServiceImplTest {
   void createForUserShouldThrowWhenUserNotFound() {
     when(userRepository.findById(1L)).thenReturn(Optional.empty());
     PaymentCard card = new PaymentCard("1", "H", LocalDate.of(2030, 12, 31), true);
+
     Assertions.assertThrows(EntityNotFoundException.class,
         () -> paymentCardService.createForUser(1L, card));
   }
@@ -66,7 +67,7 @@ class PaymentCardServiceImplTest {
   }
 
   @Test
-  void createForUserShouldSaveAndEvictCache() {
+  void createForUserShouldSaveAndEvictCaches() {
     User user = new User("Max", "Try", LocalDate.of(2002, 2, 2), "max@mail.com", true);
     PaymentCard card = new PaymentCard("1", "H", LocalDate.of(2030, 12, 31), true);
 
@@ -101,7 +102,8 @@ class PaymentCardServiceImplTest {
   @Test
   void getByIdAndUserIdShouldThrowWhenNotFound() {
     when(paymentCardRepository.findByIdAndUserId(10L, 1L)).thenReturn(Optional.empty());
-    Assertions.assertThrows(EntityNotFoundException.class, () -> paymentCardService.getByIdAndUserId(10L, 1L));
+    Assertions.assertThrows(EntityNotFoundException.class,
+        () -> paymentCardService.getByIdAndUserId(10L, 1L));
   }
 
   @Test
@@ -133,9 +135,10 @@ class PaymentCardServiceImplTest {
   }
 
   @Test
-  void updateByIdShouldUpdateAndEvictCacheByUserId() {
+  void updateByIdShouldUpdateAndEvictCaches() {
     User user = Mockito.mock(User.class);
     when(user.getId()).thenReturn(1L);
+
     PaymentCard existing = new PaymentCard("old", "old", LocalDate.of(2030, 12, 31), false);
     existing.setUser(user);
 
@@ -156,43 +159,89 @@ class PaymentCardServiceImplTest {
   }
 
   @Test
-  void setActiveShouldChangeActiveAndEvictCache() {
+  void updateByIdWithUserIdShouldThrowWhenNotFound() {
+    when(paymentCardRepository.findByIdAndUserId(10L, 1L)).thenReturn(Optional.empty());
+    PaymentCard updated = new PaymentCard("new", "new", LocalDate.of(2031, 1, 1), true);
+
+    Assertions.assertThrows(EntityNotFoundException.class,
+        () -> paymentCardService.updateById(10L, 1L, updated));
+  }
+
+  @Test
+  void updateByIdWithUserIdShouldUpdateAndEvictCaches() {
+    PaymentCard existing = new PaymentCard("old", "old", LocalDate.of(2030, 12, 31), false);
+    PaymentCard updated = new PaymentCard("new", "new", LocalDate.of(2031, 1, 1), true);
+
+    when(paymentCardRepository.findByIdAndUserId(10L, 1L)).thenReturn(Optional.of(existing));
+    when(paymentCardRepository.save(existing)).thenReturn(existing);
+
+    PaymentCard result = paymentCardService.updateById(10L, 1L, updated);
+
+    Assertions.assertNotNull(result);
+    verify(usersWithCardsCacheService, times(1)).evict(1L);
+  }
+
+  @Test
+  void getAllByUserIdWithoutPaginationShouldDelegateToRepository() {
+    when(paymentCardRepository.findAllByUserIdNative(1L)).thenReturn(List.of());
+
+    List<PaymentCard> result = paymentCardService.getAllByUserId(1L);
+
+    Assertions.assertNotNull(result);
+    verify(paymentCardRepository, times(1)).findAllByUserIdNative(1L);
+  }
+
+  @Test
+  void setActiveAndReturnShouldThrowWhenNoRowsUpdated() {
+    when(paymentCardRepository.updateActiveById(10L, true)).thenReturn(0);
+
+    Assertions.assertThrows(EntityNotFoundException.class,
+        () -> paymentCardService.setActiveAndReturn(10L, true));
+
+    verify(paymentCardRepository, never()).findById(10L);
+  }
+
+  @Test
+  void setActiveAndReturnShouldEvictCachesAndReturnCard() {
     User user = Mockito.mock(User.class);
     when(user.getId()).thenReturn(1L);
 
     PaymentCard existing = new PaymentCard("1", "H", LocalDate.of(2030, 12, 31), false);
     existing.setUser(user);
 
+    when(paymentCardRepository.updateActiveById(10L, true)).thenReturn(1);
     when(paymentCardRepository.findById(10L)).thenReturn(Optional.of(existing));
-    when(paymentCardRepository.save(existing)).thenReturn(existing);
 
-    paymentCardService.setActive(10L, true);
+    PaymentCard result = paymentCardService.setActiveAndReturn(10L, true);
 
-    Assertions.assertTrue(existing.isActive());
-    verify(paymentCardRepository, times(1)).save(existing);
+    Assertions.assertNotNull(result);
+    verify(paymentCardRepository, times(1)).updateActiveById(10L, true);
+    verify(paymentCardRepository, times(1)).findById(10L);
     verify(usersWithCardsCacheService, times(1)).evict(1L);
   }
 
   @Test
-  void setActiveWithUserIdShouldThrowWhenNotFound() {
-    when(paymentCardRepository.findByIdAndUserId(10L, 1L)).thenReturn(Optional.empty());
-    Assertions.assertThrows(EntityNotFoundException.class, () -> paymentCardService.setActive(10L, 1L, true));
+  void setActiveAndReturnWithUserIdShouldThrowWhenNoRowsUpdated() {
+    when(paymentCardRepository.updateActiveByIdAndUserId(10L, 1L, true)).thenReturn(0);
+
+    Assertions.assertThrows(EntityNotFoundException.class,
+        () -> paymentCardService.setActiveAndReturn(10L, 1L, true));
+
+    verify(paymentCardRepository, never()).findByIdAndUserId(10L, 1L);
   }
 
   @Test
-  void setActiveWithUserIdShouldSaveAndEvictCache() {
-    User user = new User("Max", "Try", LocalDate.of(2002, 2, 2), "max@mail.com", true);
+  void setActiveAndReturnWithUserIdShouldReturnCard() {
     PaymentCard existing = new PaymentCard("1", "H", LocalDate.of(2030, 12, 31), false);
-    existing.setUser(user);
 
+    when(paymentCardRepository.updateActiveByIdAndUserId(10L, 1L, true)).thenReturn(1);
     when(paymentCardRepository.findByIdAndUserId(10L, 1L)).thenReturn(Optional.of(existing));
-    when(paymentCardRepository.save(existing)).thenReturn(existing);
 
-    paymentCardService.setActive(10L, 1L, true);
+    PaymentCard result = paymentCardService.setActiveAndReturn(10L, 1L, true);
 
-    Assertions.assertTrue(existing.isActive());
-    verify(paymentCardRepository, times(1)).save(existing);
-    verify(usersWithCardsCacheService, times(1)).evict(1L);
+    Assertions.assertNotNull(result);
+    verify(paymentCardRepository, times(1)).updateActiveByIdAndUserId(10L, 1L, true);
+    verify(paymentCardRepository, times(1)).findByIdAndUserId(10L, 1L);
   }
 
   @Test

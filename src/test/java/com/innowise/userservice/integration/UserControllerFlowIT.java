@@ -49,7 +49,7 @@ class UserControllerFlowIT extends AbstractIntegrationTest {
     createCard(userId);
 
     ResponseEntity<UserWithCardsResponseDto> first = restTemplate.getForEntity(
-        "/users/" + userId + "/with-cards",
+        "/users/" + userId + "?expand=cards",
         UserWithCardsResponseDto.class
     );
 
@@ -68,8 +68,7 @@ class UserControllerFlowIT extends AbstractIntegrationTest {
     Long userId = createUser("update@mail.com");
     createCard(userId);
 
-    restTemplate.getForEntity("/users/" + userId + "/with-cards", UserWithCardsResponseDto.class);
-
+    restTemplate.getForEntity("/users/" + userId + "?expand=cards", UserWithCardsResponseDto.class);
     Assertions.assertEquals(Boolean.TRUE, stringRedisTemplate.hasKey("usersWithCards::" + userId));
 
     UserUpdateDto updateDto = new UserUpdateDto();
@@ -95,7 +94,7 @@ class UserControllerFlowIT extends AbstractIntegrationTest {
     Long userId = createUser("delete@mail.com");
     createCard(userId);
 
-    restTemplate.getForEntity("/users/" + userId + "/with-cards", UserWithCardsResponseDto.class);
+    restTemplate.getForEntity("/users/" + userId + "?expand=cards", UserWithCardsResponseDto.class);
     Assertions.assertEquals(Boolean.TRUE, stringRedisTemplate.hasKey("usersWithCards::" + userId));
 
     ResponseEntity<Void> deleteResponse = restTemplate.exchange(
@@ -136,41 +135,6 @@ class UserControllerFlowIT extends AbstractIntegrationTest {
     Assertions.assertTrue(sixth.getBody().getMessage().contains("cannot have more than 5"));
   }
 
-  private Long createUser(String email) {
-    UserCreateDto dto = new UserCreateDto();
-    dto.setName("Max");
-    dto.setSurname("Try");
-    dto.setBirthDate(LocalDate.of(2002, 2, 2));
-    dto.setEmail(email);
-    dto.setActive(true);
-
-    ResponseEntity<Void> createResponse = restTemplate.postForEntity("/users", dto, Void.class);
-    Assertions.assertEquals(HttpStatus.CREATED, createResponse.getStatusCode());
-
-    Long id = userRepository.findAll().get(0).getId();
-    Assertions.assertNotNull(id);
-    return id;
-  }
-
-  private void createCard(Long userId) {
-    ResponseEntity<Void> resp = restTemplate.postForEntity(
-        "/users/" + userId + "/cards",
-        buildCardDto(),
-        Void.class
-    );
-    Assertions.assertEquals(HttpStatus.CREATED, resp.getStatusCode());
-    Assertions.assertEquals(1, paymentCardRepository.count());
-  }
-
-  private PaymentCardCreateDto buildCardDto() {
-    PaymentCardCreateDto cardCreateDto = new PaymentCardCreateDto();
-    cardCreateDto.setNumber("1234567890123456");
-    cardCreateDto.setHolder("MAX TRY");
-    cardCreateDto.setExpirationDate(LocalDate.of(2030, 12, 31));
-    cardCreateDto.setActive(true);
-    return cardCreateDto;
-  }
-
   @Test
   void shouldFilterUsersByNameAndSurname() {
     createUser("filter1@mail.com");
@@ -207,6 +171,41 @@ class UserControllerFlowIT extends AbstractIntegrationTest {
     Assertions.assertTrue(msg.contains("name") || msg.contains("email"));
   }
 
+  private Long createUser(String email) {
+    UserCreateDto dto = new UserCreateDto();
+    dto.setName("Max");
+    dto.setSurname("Try");
+    dto.setBirthDate(LocalDate.of(2002, 2, 2));
+    dto.setEmail(email);
+    dto.setActive(true);
+
+    ResponseEntity<Void> createResponse = restTemplate.postForEntity("/users", dto, Void.class);
+    Assertions.assertEquals(HttpStatus.CREATED, createResponse.getStatusCode());
+
+    Long id = userRepository.findAll().get(0).getId();
+    Assertions.assertNotNull(id);
+    return id;
+  }
+
+  private void createCard(Long userId) {
+    ResponseEntity<Void> resp = restTemplate.postForEntity(
+        "/users/" + userId + "/cards",
+        buildCardDto(),
+        Void.class
+    );
+    Assertions.assertEquals(HttpStatus.CREATED, resp.getStatusCode());
+    Assertions.assertEquals(1, paymentCardRepository.count());
+  }
+
+  private PaymentCardCreateDto buildCardDto() {
+    PaymentCardCreateDto cardCreateDto = new PaymentCardCreateDto();
+    cardCreateDto.setNumber("1234567890123456");
+    cardCreateDto.setHolder("MAX TRY");
+    cardCreateDto.setExpirationDate(LocalDate.of(2030, 12, 31));
+    cardCreateDto.setActive(true);
+    return cardCreateDto;
+  }
+
   private void createUserWithName(String name, String surname, String email) {
     UserCreateDto dto = new UserCreateDto();
     dto.setName(name);
@@ -216,5 +215,4 @@ class UserControllerFlowIT extends AbstractIntegrationTest {
     dto.setActive(true);
     restTemplate.postForEntity("/users", dto, Void.class);
   }
-
 }

@@ -1,6 +1,7 @@
 package com.innowise.userservice.controller;
 
 import com.innowise.userservice.mapper.PaymentCardMapper;
+import com.innowise.userservice.model.dto.PaymentCardActivePatchDto;
 import com.innowise.userservice.model.entity.PaymentCard;
 import com.innowise.userservice.model.dto.PaymentCardCreateDto;
 import com.innowise.userservice.model.dto.PaymentCardResponseDto;
@@ -20,7 +21,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -80,26 +80,13 @@ public class PaymentCardController {
     return ResponseEntity.ok(paymentCardMapper.toResponseDto(updated));
   }
 
-
-  @PatchMapping("/{cardId}/active")
-  public ResponseEntity<Void> setActive(
+  @PatchMapping("/{cardId}")
+  public ResponseEntity<PaymentCardResponseDto> patchCard(
       @PathVariable Long userId,
       @PathVariable Long cardId,
-      @RequestParam("active") boolean active
+      @Valid @RequestBody PaymentCardActivePatchDto dto
   ) {
-    paymentCardService.setActive(cardId, userId, active);
-
-    return ResponseEntity.noContent().build();
+    PaymentCard updated = paymentCardService.setActiveAndReturn(cardId, userId, dto.getActive());
+    return ResponseEntity.ok(paymentCardMapper.toResponseDto(updated));
   }
-
-  @GetMapping("/all")
-  public ResponseEntity<List<PaymentCardResponseDto>> getAllByUserIdWithoutPagination(@PathVariable Long userId) {
-    List<PaymentCardResponseDto> result = paymentCardService.getAllByUserId(userId)
-        .stream()
-        .map(paymentCardMapper::toResponseDto)
-        .toList();
-
-    return ResponseEntity.ok(result);
-  }
-
 }

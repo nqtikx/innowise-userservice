@@ -10,9 +10,9 @@ public interface UserService {
   User create(User user);
   User getById(Long id);
   User updateById(Long id, User updated);
-  void setActive(Long id, boolean active);
   User save(User user);
   UserWithCardsResponseDto getByIdWithCards(Long id);
   void deleteById(Long id);
   Page<User> getAll(String name, String surname, Pageable pageable);
+  User setActiveAndReturn(Long id, Boolean active);
 }

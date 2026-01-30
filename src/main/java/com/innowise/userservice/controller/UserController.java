@@ -1,6 +1,7 @@
 package com.innowise.userservice.controller;
 
 import com.innowise.userservice.mapper.UserMapper;
+import com.innowise.userservice.model.dto.UserActivePatchDto;
 import com.innowise.userservice.model.dto.UserWithCardsResponseDto;
 import com.innowise.userservice.model.entity.User;
 import com.innowise.userservice.model.dto.UserCreateDto;
@@ -44,12 +45,6 @@ public class UserController {
     return ResponseEntity.status(HttpStatus.CREATED).body(userMapper.toResponseDto(created));
   }
 
-  @GetMapping("/{id}")
-  public ResponseEntity<UserResponseDto> getById(@PathVariable Long id) {
-    User user = userService.getById(id);
-    return ResponseEntity.ok(userMapper.toResponseDto(user));
-  }
-
   @PutMapping("/{id}")
   public ResponseEntity<UserResponseDto> updateById(
       @PathVariable Long id,
@@ -61,17 +56,25 @@ public class UserController {
 
   }
 
-  @PatchMapping("/{id}/active")
-  public ResponseEntity<Void> setActive(
+  @PatchMapping("/{id}")
+  public ResponseEntity<UserResponseDto> patchUser(
       @PathVariable Long id,
-      @RequestParam("active") boolean active
+      @Valid @RequestBody UserActivePatchDto dto
   ) {
-    userService.setActive(id, active);
-    return ResponseEntity.noContent().build();
+    User updated = userService.setActiveAndReturn(id, dto.getActive());
+    return ResponseEntity.ok(userMapper.toResponseDto(updated));
   }
 
-  @GetMapping("/{id}/with-cards")
-  public ResponseEntity<UserWithCardsResponseDto> getByIdWithCards(@PathVariable Long id) {
+  @GetMapping(value = "/{id}", params = "!expand")
+  public ResponseEntity<UserResponseDto> getById(@PathVariable Long id) {
+    User user = userService.getById(id);
+    return ResponseEntity.ok(userMapper.toResponseDto(user));
+  }
+
+  @GetMapping(value = "/{id}", params = "expand=cards")
+  public ResponseEntity<UserWithCardsResponseDto> getByIdWithCards(
+      @PathVariable Long id
+  ) {
     return ResponseEntity.ok(userService.getByIdWithCards(id));
   }
 
@@ -92,4 +95,5 @@ public class UserController {
 
     return ResponseEntity.ok(result);
   }
+
 }

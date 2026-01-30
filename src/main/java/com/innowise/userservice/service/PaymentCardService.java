@@ -14,9 +14,8 @@ public interface PaymentCardService {
   Page<PaymentCard> getAllByUserId(Long userId, Pageable pageable);
   List<PaymentCard> getAllByUserId(Long userId);
   PaymentCard updateById(Long id, PaymentCard updated);
-  void setActive(Long id, boolean active);
   PaymentCard save(PaymentCard paymentCard);
-  void setActive(Long id, Long userId, boolean active);
   PaymentCard updateById(Long id, Long userId, PaymentCard updated);
-
+  PaymentCard setActiveAndReturn(Long id, boolean active);
+  PaymentCard setActiveAndReturn(Long id, Long userId, boolean active);
 }

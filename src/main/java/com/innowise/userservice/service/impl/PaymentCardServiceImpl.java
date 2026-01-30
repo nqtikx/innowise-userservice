@@ -107,31 +107,6 @@ public class PaymentCardServiceImpl implements PaymentCardService {
     target.setActive(source.isActive());
   }
 
-
-  @Override
-  public void setActive(Long id, boolean active) {
-    PaymentCard existing = paymentCardRepository.findById(id)
-        .orElseThrow(() -> new EntityNotFoundException(CARD_NOT_FOUND_MSG + id));
-    Long userId = existing.getUser().getId();
-
-    int updatedRows = paymentCardRepository.updateActiveById(id, active);
-    if (updatedRows == 0) {
-      throw new EntityNotFoundException(CARD_NOT_FOUND_MSG + id);
-    }
-
-    usersWithCardsCacheService.evict(userId);
-  }
-
-  @Override
-  public void setActive(Long id, Long userId, boolean active) {
-    int updatedRows = paymentCardRepository.updateActiveByIdAndUserId(id, userId, active);
-    if (updatedRows == 0) {
-      throw new EntityNotFoundException(CARD_NOT_FOUND_MSG + id + ", userId=" + userId);
-    }
-
-    usersWithCardsCacheService.evict(userId);
-  }
-
   @Override
   public PaymentCard save(PaymentCard paymentCard) {
     if (paymentCard == null) {
@@ -144,5 +119,28 @@ public class PaymentCardServiceImpl implements PaymentCardService {
   @Transactional(readOnly = true)
   public List<PaymentCard> getAllByUserId(Long userId) {
     return paymentCardRepository.findAllByUserIdNative(userId);
+  }
+
+  @Override
+  public PaymentCard setActiveAndReturn(Long id, boolean active) {
+    int updatedRows = paymentCardRepository.updateActiveById(id, active);
+    if (updatedRows == 0) {
+      throw new EntityNotFoundException(CARD_NOT_FOUND_MSG + id);
+    }
+
+    PaymentCard card = paymentCardRepository.findById(id)
+        .orElseThrow(() -> new EntityNotFoundException(CARD_NOT_FOUND_MSG + id));
+    usersWithCardsCacheService.evict(card.getUser().getId());
+    return card;
+  }
+
+  @Override
+  public PaymentCard setActiveAndReturn(Long id, Long userId, boolean active) {
+    int updatedRows = paymentCardRepository.updateActiveByIdAndUserId(id, userId, active);
+    if (updatedRows == 0) {
+      throw new EntityNotFoundException(CARD_NOT_FOUND_MSG + id + ", userId=" + userId);
+    }
+    usersWithCardsCacheService.evict(userId);
+    return getByIdAndUserId(id, userId);
   }
 }

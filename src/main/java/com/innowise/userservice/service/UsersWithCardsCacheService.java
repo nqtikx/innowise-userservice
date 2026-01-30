@@ -15,8 +15,4 @@ public class UsersWithCardsCacheService {
     log.debug("Clearing cache for user id: {}", userId);
   }
 
-  @CacheEvict(cacheNames = "usersWithCards", allEntries = true)
-  public void evictAll() {
-    log.debug("Clearing cache for all user");
-  }
 }

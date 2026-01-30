@@ -12,6 +12,7 @@ import com.innowise.userservice.specification.UserSpecification;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -72,15 +73,6 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  @CacheEvict(cacheNames = "usersWithCards", key = "#id")
-  public void setActive(Long id, boolean active) {
-    int updatedRows = userRepository.updateActiveById(id, active);
-    if (updatedRows == 0) {
-      throw new EntityNotFoundException(USER_NOT_FOUND_MSG + id);
-    }
-  }
-
-  @Override
   @CacheEvict(cacheNames = "usersWithCards", key = "#user.id")
   public User save(User user) {
     if (user == null) {
@@ -124,5 +116,14 @@ public class UserServiceImpl implements UserService {
         .and(UserSpecification.surnameContainsIgnoreCase(surname));
 
     return userRepository.findAll(specification, pageable);
+  }
+
+  @Override
+  public User setActiveAndReturn(Long id, Boolean active) {
+    int updatedRows = userRepository.updateActiveById(id, active);
+    if (updatedRows == 0) {
+      throw new EntityNotFoundException(USER_NOT_FOUND_MSG + id);
+    }
+    return getById(id);
   }
 }

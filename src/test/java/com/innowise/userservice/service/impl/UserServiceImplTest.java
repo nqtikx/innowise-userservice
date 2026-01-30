@@ -17,9 +17,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -27,10 +27,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceImplTest {
@@ -95,6 +96,7 @@ class UserServiceImplTest {
   void updateByIdShouldThrowWhenUserNotFound() {
     when(userRepository.findById(1L)).thenReturn(Optional.empty());
     User userToUpdate = new User("A", "B", LocalDate.of(2000, 1, 1), "a@b.com", true);
+
     Assertions.assertThrows(EntityNotFoundException.class,
         () -> userService.updateById(1L, userToUpdate));
   }
@@ -123,16 +125,27 @@ class UserServiceImplTest {
   }
 
   @Test
-  void setActiveShouldThrowWhenNoRowsUpdated() {
+  void setActiveAndReturnShouldThrowWhenNoRowsUpdated() {
     when(userRepository.updateActiveById(1L, true)).thenReturn(0);
-    Assertions.assertThrows(EntityNotFoundException.class, () -> userService.setActive(1L, true));
+
+    Assertions.assertThrows(EntityNotFoundException.class,
+        () -> userService.setActiveAndReturn(1L, true));
+
+    verify(userRepository, never()).findById(1L);
   }
 
   @Test
-  void setActiveShouldUpdateWhenRowsUpdated() {
+  void setActiveAndReturnShouldReturnUserWhenUpdated() {
+    User user = new User("Max", "Try", LocalDate.of(2002, 2, 2), "max@mail.com", true);
+
     when(userRepository.updateActiveById(1L, true)).thenReturn(1);
-    userService.setActive(1L, true);
+    when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+    User result = userService.setActiveAndReturn(1L, true);
+
+    Assertions.assertNotNull(result);
     verify(userRepository, times(1)).updateActiveById(1L, true);
+    verify(userRepository, times(1)).findById(1L);
   }
 
   @Test
@@ -170,7 +183,7 @@ class UserServiceImplTest {
     when(userMapper.toResponseDto(user)).thenReturn(userResponseDto);
 
     PaymentCardResponseDto cardResponseDto = new PaymentCardResponseDto();
-    when(paymentCardMapper.toResponseDto(card)).thenReturn(cardResponseDto);
+    when(paymentCardMapper.toResponseDto(eq(card))).thenReturn(cardResponseDto);
 
     UserWithCardsResponseDto dto = userService.getByIdWithCards(1L);
 
@@ -204,14 +217,13 @@ class UserServiceImplTest {
     Pageable pageable = Pageable.ofSize(10);
     Page<User> expected = new PageImpl<>(List.of(), pageable, 0);
 
-    when(userRepository.findAll(Mockito.<Specification<User>>any(), Mockito.eq(pageable)))
+    when(userRepository.findAll(Mockito.<Specification<User>>any(), eq(pageable)))
         .thenReturn(expected);
 
     Page<User> result = userService.getAll("Max", "Try", pageable);
 
     Assertions.assertNotNull(result);
     verify(userRepository, times(1))
-        .findAll(Mockito.<Specification<User>>any(), Mockito.eq(pageable));
+        .findAll(Mockito.<Specification<User>>any(), eq(pageable));
   }
 }
-

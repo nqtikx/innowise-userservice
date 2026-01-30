@@ -118,6 +118,7 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
+  @CacheEvict(cacheNames = "usersWithCards", key = "#id")
   public User setActiveAndReturn(Long id, Boolean active) {
     int updatedRows = userRepository.updateActiveById(id, active);
     if (updatedRows == 0) {

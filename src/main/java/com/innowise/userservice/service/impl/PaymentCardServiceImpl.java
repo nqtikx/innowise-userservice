@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class PaymentCardServiceImpl implements PaymentCardService {
 
   private static final String CARD_NOT_FOUND_MSG = "payment card not found id=";
+  private static final String USER_ID_SUFFIX = ", userId=";
   private static final int MAX_CARDS_PER_USER = 5;
 
   private final UsersWithCardsCacheService usersWithCardsCacheService;
@@ -62,7 +63,7 @@ public class PaymentCardServiceImpl implements PaymentCardService {
   @Transactional(readOnly = true)
   public PaymentCard getByIdAndUserId(Long id, Long userId) {
     return paymentCardRepository.findByIdAndUserId(id, userId)
-        .orElseThrow(() -> new EntityNotFoundException(CARD_NOT_FOUND_MSG + id + ", userId=" + userId));
+        .orElseThrow(() -> new EntityNotFoundException(CARD_NOT_FOUND_MSG + id + USER_ID_SUFFIX + userId));
   }
 
   @Override
@@ -92,7 +93,7 @@ public class PaymentCardServiceImpl implements PaymentCardService {
   @Override
   public PaymentCard updateById(Long id, Long userId, PaymentCard updated) {
     PaymentCard existing = paymentCardRepository.findByIdAndUserId(id, userId)
-        .orElseThrow(() -> new EntityNotFoundException(CARD_NOT_FOUND_MSG + id + ", userId=" + userId));
+        .orElseThrow(() -> new EntityNotFoundException(CARD_NOT_FOUND_MSG + id + USER_ID_SUFFIX + userId));
     applyUpdates(existing, updated);
 
     PaymentCard saved = paymentCardRepository.save(existing);
@@ -139,10 +140,10 @@ public class PaymentCardServiceImpl implements PaymentCardService {
   public PaymentCard setActiveAndReturn(Long id, Long userId, boolean active) {
     int updatedRows = paymentCardRepository.updateActiveByIdAndUserId(id, userId, active);
     if (updatedRows == 0) {
-      throw new EntityNotFoundException(CARD_NOT_FOUND_MSG + id + ", userId=" + userId);
+      throw new EntityNotFoundException(CARD_NOT_FOUND_MSG + id + USER_ID_SUFFIX + userId);
     }
     usersWithCardsCacheService.evict(userId);
     return paymentCardRepository.findByIdAndUserId(id, userId)
-        .orElseThrow(() -> new EntityNotFoundException(CARD_NOT_FOUND_MSG + id + ", userId=" + userId));
+        .orElseThrow(() -> new EntityNotFoundException(CARD_NOT_FOUND_MSG + id + USER_ID_SUFFIX + userId));
   }
 }

@@ -23,7 +23,7 @@ public class UserCreateDto {
 
   @NotBlank
   @Email
-  @Size(max = 70)
+  @Size(max = 75)
   private String email;
 
   @NotNull

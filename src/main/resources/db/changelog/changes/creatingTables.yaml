@@ -27,7 +27,7 @@ databaseChangeLog:
                 }
               }
               - column: {
-                name: email, type: varchar(82), constraints: {
+                name: email, type: varchar(75), constraints: {
                   nullable: false
                 }
               }
@@ -52,6 +52,22 @@ databaseChangeLog:
             columnNames: email
             constraintName: uk_users_email
 
+        - createIndex:
+            tableName: users
+            indexName: ix_users_name
+            columns:
+              - column: {
+                name: name
+              }
+
+        - createIndex:
+            tableName: users
+            indexName: ix_users_surname
+            columns:
+              - column: {
+                name: surname
+              }
+
         - createTable:
             tableName: payment_cards
             columns:
@@ -66,12 +82,12 @@ databaseChangeLog:
                 }
               }
               - column: {
-                name: number, type: varchar(25), constraints: {
+                name: number, type: varchar(16), constraints: {
                   nullable: false
                 }
               }
               - column: {
-                name: holder, type: varchar(16), constraints: {
+                name: holder, type: varchar(100), constraints: {
                   nullable: false
                 }
               }
@@ -118,3 +134,4 @@ databaseChangeLog:
               - column: {
                 name: number
               }
+

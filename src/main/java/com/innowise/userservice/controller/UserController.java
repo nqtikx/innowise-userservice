@@ -1,6 +1,7 @@
 package com.innowise.userservice.controller;
 
 import com.innowise.userservice.mapper.UserMapper;
+import com.innowise.userservice.model.dto.UserActivePatchDto;
 import com.innowise.userservice.model.dto.UserWithCardsResponseDto;
 import com.innowise.userservice.model.entity.User;
 import com.innowise.userservice.model.dto.UserCreateDto;
@@ -44,35 +45,36 @@ public class UserController {
     return ResponseEntity.status(HttpStatus.CREATED).body(userMapper.toResponseDto(created));
   }
 
-  @GetMapping("/{id}")
-  public ResponseEntity<UserResponseDto> getById(@PathVariable Long id) {
-    User user = userService.getById(id);
-    return ResponseEntity.ok(userMapper.toResponseDto(user));
-  }
-
   @PutMapping("/{id}")
   public ResponseEntity<UserResponseDto> updateById(
       @PathVariable Long id,
       @Valid @RequestBody UserUpdateDto dto
   ) {
-    User existing = userService.getById(id);
-    userMapper.updateEntity(dto, existing);
-    User updated = userService.save(existing);
+    User updatedEntity = userMapper.toEntity(dto);
+    User updated = userService.updateById(id, updatedEntity);
+    return ResponseEntity.ok(userMapper.toResponseDto(updated));
 
+  }
+
+  @PatchMapping("/{id}")
+  public ResponseEntity<UserResponseDto> patchUser(
+      @PathVariable Long id,
+      @Valid @RequestBody UserActivePatchDto dto
+  ) {
+    User updated = userService.setActiveAndReturn(id, dto.getActive());
     return ResponseEntity.ok(userMapper.toResponseDto(updated));
   }
 
-  @PatchMapping("/{id}/active")
-  public ResponseEntity<Void> setActive(
-      @PathVariable Long id,
-      @RequestParam("active") boolean active
-  ) {
-    userService.setActive(id, active);
-    return ResponseEntity.noContent().build();
+  @GetMapping(value = "/{id}", params = "!expand")
+  public ResponseEntity<UserResponseDto> getById(@PathVariable Long id) {
+    User user = userService.getById(id);
+    return ResponseEntity.ok(userMapper.toResponseDto(user));
   }
 
-  @GetMapping("/{id}/with-cards")
-  public ResponseEntity<UserWithCardsResponseDto> getByIdWithCards(@PathVariable Long id) {
+  @GetMapping(value = "/{id}", params = "expand=cards")
+  public ResponseEntity<UserWithCardsResponseDto> getByIdWithCards(
+      @PathVariable Long id
+  ) {
     return ResponseEntity.ok(userService.getByIdWithCards(id));
   }
 
@@ -93,4 +95,5 @@ public class UserController {
 
     return ResponseEntity.ok(result);
   }
+
 }

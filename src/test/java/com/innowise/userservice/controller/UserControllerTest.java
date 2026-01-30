@@ -2,12 +2,15 @@ package com.innowise.userservice.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.innowise.userservice.mapper.UserMapper;
+import com.innowise.userservice.model.dto.UserActivePatchDto;
 import com.innowise.userservice.model.dto.UserCreateDto;
 import com.innowise.userservice.model.dto.UserResponseDto;
 import com.innowise.userservice.model.dto.UserUpdateDto;
 import com.innowise.userservice.model.dto.UserWithCardsResponseDto;
 import com.innowise.userservice.model.entity.User;
 import com.innowise.userservice.service.UserService;
+import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,12 +22,16 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
-import java.time.LocalDate;
-import java.util.Collections;
+
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -52,7 +59,7 @@ class UserControllerTest {
     dto.setEmail("test@mail.com");
     dto.setActive(true);
 
-    User user = new User("Cat", "Dog", LocalDate.of(2025, 1, 1), "test@mail.com", true);
+    User user = new User("Cat", "Dog", LocalDate.of(2000, 1, 1), "test@mail.com", true);
     ReflectionTestUtils.setField(user, "id", 1L);
 
     UserResponseDto responseDto = new UserResponseDto();
@@ -71,7 +78,7 @@ class UserControllerTest {
 
   @Test
   void getByIdShouldReturnUser() throws Exception {
-    User user = new User("Cat", "Dog", LocalDate.of(2025, 1, 1), "test@mail.com", true);
+    User user = new User("Cat", "Dog", LocalDate.of(2000, 1, 1), "test@mail.com", true);
     ReflectionTestUtils.setField(user, "id", 1L);
 
     UserResponseDto responseDto = new UserResponseDto();
@@ -94,43 +101,64 @@ class UserControllerTest {
     dto.setEmail("new@mail.com");
     dto.setActive(true);
 
-    User user = new User("newCat", "newDog", LocalDate.of(2025, 2, 1), "new@mail.com", true);
-    ReflectionTestUtils.setField(user, "id", 1L);
+    User updatedEntity = new User("newCat", "newDog", LocalDate.of(2025, 2, 1), "new@mail.com", true);
+    ReflectionTestUtils.setField(updatedEntity, "id", 1L);
 
     UserResponseDto responseDto = new UserResponseDto();
+    responseDto.setId(1L);
     responseDto.setName("newCat");
 
-    when(userService.getById(1L)).thenReturn(user);
-    when(userService.save(user)).thenReturn(user);
-    when(userMapper.toResponseDto(user)).thenReturn(responseDto);
+    when(userMapper.toEntity(any(UserUpdateDto.class))).thenReturn(updatedEntity);
+    when(userService.updateById(eq(1L), eq(updatedEntity))).thenReturn(updatedEntity);
+    when(userMapper.toResponseDto(updatedEntity)).thenReturn(responseDto);
 
     mockMvc.perform(put("/users/1")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(dto)))
         .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(1L))
         .andExpect(jsonPath("$.name").value("newCat"));
   }
 
   @Test
-  void setActiveShouldReturnNoContent() throws Exception {
-    mockMvc.perform(patch("/users/1/active")
-            .param("active", "false"))
-        .andExpect(status().isNoContent());
+  void patchUserShouldReturnUpdated() throws Exception {
+    UserActivePatchDto dto = new UserActivePatchDto();
+    dto.setActive(false);
 
-    verify(userService).setActive(1L, false);
+    User updated = new User("Cat", "Dog", LocalDate.of(2000, 1, 1), "test@mail.com", false);
+    ReflectionTestUtils.setField(updated, "id", 1L);
+
+    UserResponseDto responseDto = new UserResponseDto();
+    responseDto.setId(1L);
+    responseDto.setActive(false);
+
+    when(userService.setActiveAndReturn(1L, false)).thenReturn(updated);
+    when(userMapper.toResponseDto(updated)).thenReturn(responseDto);
+
+    mockMvc.perform(patch("/users/1")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(dto)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(1L))
+        .andExpect(jsonPath("$.active").value(false));
+
+    verify(userService).setActiveAndReturn(1L, false);
   }
 
   @Test
   void getByIdWithCardsShouldReturnDto() throws Exception {
     UserWithCardsResponseDto dto = new UserWithCardsResponseDto();
+    dto.setUser(new UserResponseDto());
     dto.setCards(Collections.emptyList());
 
     when(userService.getByIdWithCards(1L)).thenReturn(dto);
 
-    mockMvc.perform(get("/users/1/with-cards"))
+    mockMvc.perform(get("/users/1")
+            .param("expand", "cards"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.cards").isArray());
   }
+
 
   @Test
   void deleteShouldReturnNoContent() throws Exception {

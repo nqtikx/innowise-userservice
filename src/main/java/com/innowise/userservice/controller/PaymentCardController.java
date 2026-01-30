@@ -1,12 +1,14 @@
 package com.innowise.userservice.controller;
 
 import com.innowise.userservice.mapper.PaymentCardMapper;
+import com.innowise.userservice.model.dto.PaymentCardActivePatchDto;
 import com.innowise.userservice.model.entity.PaymentCard;
 import com.innowise.userservice.model.dto.PaymentCardCreateDto;
 import com.innowise.userservice.model.dto.PaymentCardResponseDto;
 import com.innowise.userservice.model.dto.PaymentCardUpdateDto;
 import com.innowise.userservice.service.PaymentCardService;
 import jakarta.validation.Valid;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,7 +21,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -74,22 +75,18 @@ public class PaymentCardController {
       @PathVariable Long cardId,
       @Valid @RequestBody PaymentCardUpdateDto dto
   ) {
-    PaymentCard existing = paymentCardService.getByIdAndUserId(cardId, userId);
-    paymentCardMapper.updateEntity(dto, existing);
-
-    PaymentCard updated = paymentCardService.save(existing);
-
+    PaymentCard entity = paymentCardMapper.toEntity(dto);
+    PaymentCard updated = paymentCardService.updateById(cardId, userId, entity);
     return ResponseEntity.ok(paymentCardMapper.toResponseDto(updated));
   }
 
-  @PatchMapping("/{cardId}/active")
-  public ResponseEntity<Void> setActive(
+  @PatchMapping("/{cardId}")
+  public ResponseEntity<PaymentCardResponseDto> patchCard(
       @PathVariable Long userId,
       @PathVariable Long cardId,
-      @RequestParam("active") boolean active
+      @Valid @RequestBody PaymentCardActivePatchDto dto
   ) {
-    paymentCardService.setActive(cardId, userId, active);
-
-    return ResponseEntity.noContent().build();
+    PaymentCard updated = paymentCardService.setActiveAndReturn(cardId, userId, dto.getActive());
+    return ResponseEntity.ok(paymentCardMapper.toResponseDto(updated));
   }
 }

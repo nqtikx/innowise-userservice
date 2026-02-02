@@ -1,0 +1,18 @@
+package com.innowise.userservice.service;
+
+import com.innowise.userservice.model.dto.UserWithCardsResponseDto;
+import com.innowise.userservice.model.entity.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+public interface UserService {
+
+  User create(User user);
+  User getById(Long id);
+  User updateById(Long id, User updated);
+  User save(User user);
+  UserWithCardsResponseDto getByIdWithCards(Long id);
+  void deleteById(Long id);
+  Page<User> getAll(String name, String surname, Pageable pageable);
+  User setActiveAndReturn(Long id, Boolean active);
+}

@@ -1,0 +1,137 @@
+databaseChangeLog:
+  - changeSet:
+      id: creatingCards
+      author: innowise
+      changes:
+        - createTable:
+            tableName: users
+            columns:
+              - column: {
+                name: id, type: bigserial, constraints: {
+                  primaryKey: true, nullable: false
+                }
+              }
+              - column: {
+                name: name, type: varchar(25), constraints: {
+                  nullable: false
+                }
+              }
+              - column: {
+                name: surname, type: varchar(25), constraints: {
+                  nullable: false
+                }
+              }
+              - column: {
+                name: birth_date, type: date, constraints: {
+                  nullable: false
+                }
+              }
+              - column: {
+                name: email, type: varchar(75), constraints: {
+                  nullable: false
+                }
+              }
+              - column: {
+                name: active, type: boolean, constraints: {
+                  nullable: false
+                }
+              }
+              - column: {
+                name: created_at, type: timestamp, constraints: {
+                  nullable: false
+                }
+              }
+              - column: {
+                name: updated_at, type: timestamp, constraints: {
+                  nullable: false
+                }
+              }
+
+        - addUniqueConstraint:
+            tableName: users
+            columnNames: email
+            constraintName: uk_users_email
+
+        - createIndex:
+            tableName: users
+            indexName: ix_users_name
+            columns:
+              - column: {
+                name: name
+              }
+
+        - createIndex:
+            tableName: users
+            indexName: ix_users_surname
+            columns:
+              - column: {
+                name: surname
+              }
+
+        - createTable:
+            tableName: payment_cards
+            columns:
+              - column: {
+                name: id, type: bigserial, constraints: {
+                  primaryKey: true, nullable: false
+                }
+              }
+              - column: {
+                name: user_id, type: bigint, constraints: {
+                  nullable: false
+                }
+              }
+              - column: {
+                name: number, type: varchar(16), constraints: {
+                  nullable: false
+                }
+              }
+              - column: {
+                name: holder, type: varchar(100), constraints: {
+                  nullable: false
+                }
+              }
+              - column: {
+                name: expiration_date, type: date, constraints: {
+                  nullable: false
+                }
+              }
+              - column: {
+                name: active, type: boolean, constraints: {
+                  nullable: false
+                }
+              }
+              - column: {
+                name: created_at, type: timestamp, constraints: {
+                  nullable: false
+                }
+              }
+              - column: {
+                name: updated_at, type: timestamp, constraints: {
+                  nullable: false
+                }
+              }
+
+        - addForeignKeyConstraint:
+            baseTableName: payment_cards
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_payment_cards_user
+
+        - createIndex:
+            tableName: payment_cards
+            indexName: ix_payment_cards_user_id
+            columns:
+              - column: {
+                name: user_id
+              }
+
+        - createIndex:
+            tableName: payment_cards
+            indexName: ix_payment_cards_number
+            columns:
+              - column: {
+                name: number
+              }
+

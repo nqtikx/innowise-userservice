@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  auth-service:
+    build: ./authservice
+    container_name: auth-service
+    ports:
+      - "${AUTH_SERVER_PORT}:${AUTH_SERVER_PORT}"
+    environment:
+      - SERVER_PORT=${AUTH_SERVER_PORT}
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://auth-db:5432/${AUTH_DB_NAME}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_ACCESS_TTL_MINUTES=${JWT_ACCESS_TTL_MINUTES}
+      - JWT_REFRESH_TTL_DAYS=${JWT_REFRESH_TTL_DAYS}
+    depends_on:
+      auth-db:
+        condition: service_healthy
+    networks:
+      - microservices-network
+
+  auth-db:
+    image: postgres:16-alpine
+    container_name: auth-db
+    ports:
+      - "${AUTH_DB_PORT}:5432"
+    environment:
+      - POSTGRES_DB=${AUTH_DB_NAME}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${AUTH_DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - microservices-network
+
+  user-service:
+    build: ./userservice
+    container_name: user-service
+    ports:
+      - "${USER_SERVER_PORT}:${USER_SERVER_PORT}"
+    environment:
+      - SERVER_PORT=${USER_SERVER_PORT}
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://user-db:5432/${USER_DB_NAME}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+    depends_on:
+      user-db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - microservices-network
+
+  user-db:
+    image: postgres:16-alpine
+    container_name: user-db
+    ports:
+      - "${USER_DB_PORT}:5432"
+    environment:
+      - POSTGRES_DB=${USER_DB_NAME}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${USER_DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - microservices-network
+
+  redis:
+    image: redis:alpine
+    container_name: redis
+    ports:
+      - "${REDIS_PORT}:6379"
+    networks:
+      - microservices-network
+
+networks:
+  microservices-network:
+    driver: bridge

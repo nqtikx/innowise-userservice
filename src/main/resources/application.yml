@@ -9,3 +9,12 @@ spring:
     change-log: classpath:db/changelog/db.changelog-master.yaml
   cache:
     type: redis
+
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST}
+      port: ${SPRING_DATA_REDIS_PORT}
+
+security:
+  jwt:
+    secret: ${JWT_SECRET}

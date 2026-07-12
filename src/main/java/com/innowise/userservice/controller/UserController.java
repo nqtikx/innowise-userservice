@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
 @RequestMapping("/users")
@@ -38,6 +39,7 @@ public class UserController {
     this.userMapper = userMapper;
   }
 
+  @PreAuthorize("hasRole('ADMIN')")
   @PostMapping("")
   public ResponseEntity<UserResponseDto> create(@Valid @RequestBody UserCreateDto dto) {
     User user = userMapper.toEntity(dto);
@@ -45,6 +47,7 @@ public class UserController {
     return ResponseEntity.status(HttpStatus.CREATED).body(userMapper.toResponseDto(created));
   }
 
+  @PreAuthorize("hasRole('ADMIN') or @securityUtil.isSelf(#id)")
   @PutMapping("/{id}")
   public ResponseEntity<UserResponseDto> updateById(
       @PathVariable Long id,
@@ -56,6 +59,7 @@ public class UserController {
 
   }
 
+  @PreAuthorize("hasRole('ADMIN')")
   @PatchMapping("/{id}")
   public ResponseEntity<UserResponseDto> patchUser(
       @PathVariable Long id,
@@ -65,12 +69,14 @@ public class UserController {
     return ResponseEntity.ok(userMapper.toResponseDto(updated));
   }
 
+  @PreAuthorize("hasRole('ADMIN') or @securityUtil.isSelf(#id)")
   @GetMapping(value = "/{id}", params = "!expand")
   public ResponseEntity<UserResponseDto> getById(@PathVariable Long id) {
     User user = userService.getById(id);
     return ResponseEntity.ok(userMapper.toResponseDto(user));
   }
 
+  @PreAuthorize("hasRole('ADMIN') or @securityUtil.isSelf(#id)")
   @GetMapping(value = "/{id}", params = "expand=cards")
   public ResponseEntity<UserWithCardsResponseDto> getByIdWithCards(
       @PathVariable Long id
@@ -78,12 +84,14 @@ public class UserController {
     return ResponseEntity.ok(userService.getByIdWithCards(id));
   }
 
+  @PreAuthorize("hasRole('ADMIN') or @securityUtil.isSelf(#id)")
   @DeleteMapping("/{id}")
   public ResponseEntity<Void> delete(@PathVariable Long id) {
     userService.deleteById(id);
     return ResponseEntity.noContent().build();
   }
 
+  @PreAuthorize("hasRole('ADMIN')")
   @GetMapping("")
   public ResponseEntity<Page<UserResponseDto>> getAll(
       @RequestParam(required = false) String name,
